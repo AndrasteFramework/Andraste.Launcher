@@ -10,7 +10,6 @@ namespace Launcher
     #nullable enable
     public class Launcher : EntryPoint
     {
-
         public static void Main(string[] args)
         {
             var launcher = new Launcher();
@@ -20,7 +19,7 @@ namespace Launcher
                     launcher.Launch(args[0], args[1]);
                     break;
                 case 1:
-                    launcher.Launch(args[0], "TDU1ModFramework");
+                    launcher.Launch(args[0], "Andraste.Payload.Generic.dll");
                     break;
                 default:
                     Console.ForegroundColor = ConsoleColor.Red;

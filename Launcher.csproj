@@ -92,6 +92,10 @@
       <Project>{FAB7FDA6-7269-4ACF-B3ED-95CB3F8727DD}</Project>
       <Name>Andraste.Host</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Andraste.Payload.Generic\Andraste.Payload.Generic.csproj">
+      <Project>{d204ea37-9912-40df-9517-f3417df2015e}</Project>
+      <Name>Andraste.Payload.Generic</Name>
+    </ProjectReference>
   </ItemGroup>
   <!-- Important, because those will be the files that get loaded and injected -->
   <ItemGroup>
