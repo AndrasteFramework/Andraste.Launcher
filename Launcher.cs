@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
 using Andraste.Host;
 using Andraste.Host.Logging;
+using Andraste.Shared.ModManagement;
+using Andraste.Shared.ModManagement.Json;
 
 namespace Launcher
 {
@@ -36,6 +41,27 @@ namespace Launcher
             // Boot up Andraste
             Initialize();
 
+            // Unfortunately, .NET FX requires us to add the config file with the bindings redirect, otherwise it fails to load assemblies.
+            // This fails when you run the game multiple times with different .configs (or if the .config is locked by the file?), but that's a corner case.
+            // TODO: In theory we'd need to merge files, because here, dllName.config does not containing transitive rewrites that are part in Andraste.Shared.dll.config
+            var bindingRedirectFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dllName + ".config");
+            var bindingRedirectShared = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Andraste.Shared.dll.config");
+            if (File.Exists(bindingRedirectFile))
+            {
+                File.Copy(bindingRedirectFile, exePath + ".config", true);
+                // For some reason, debugging has shown that sometimes, it tries to resolve the .configs in the Launcher directory. Is that dependant on the app?
+                File.Copy(bindingRedirectFile, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.GetFileName(exePath)) + ".config", true);
+                //File.Copy(bindingRedirectShared, Path.Combine(Path.GetDirectoryName(exePath)!, "Andraste.Shared.dll.config"), true);
+            }
+            else if (File.Exists(bindingRedirectShared))
+            {
+                Console.WriteLine("Warning: Framework does not have a specific binding redirect file. Trying Andraste.Shared");
+                File.Copy(bindingRedirectShared, exePath + ".config", true);
+            }
+            else
+            {
+                Console.WriteLine($"Warning: Could not find a binding redirect file at {bindingRedirectFile}. Try to have your IDE generate one.");
+            }
             Process? proc = null;
             try
             {
@@ -59,7 +85,7 @@ namespace Launcher
                 return;
             }
 
-            Console.Title = $"TDU2 Modding Framework - Attached to PID {proc.Id}";
+            Console.Title = $"Andraste Console Launcher - Attached to PID {proc.Id}";
 
             #region Logging
             var output = new FileLoggingHost(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output.log"));
