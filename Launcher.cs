@@ -41,6 +41,11 @@ namespace Launcher
             // Boot up Andraste
             Initialize();
 
+            if (!WriteModsJson())
+            {
+                return;
+            }
+
             // Unfortunately, .NET FX requires us to add the config file with the bindings redirect, otherwise it fails to load assemblies.
             // This fails when you run the game multiple times with different .configs (or if the .config is locked by the file?), but that's a corner case.
             // TODO: In theory we'd need to merge files, because here, dllName.config does not containing transitive rewrites that are part in Andraste.Shared.dll.config
@@ -108,6 +113,63 @@ namespace Launcher
             Console.WriteLine("Press any key to continue");
             Console.ReadLine();
             #endif
+        }
+
+        private static bool WriteModsJson()
+        {
+            var settings = new ModSettings();
+            var enabledMods = new List<ModSetting>();
+            var modsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                "mods");
+
+            if (!Directory.Exists(modsFolder))
+            {
+                Console.WriteLine("Creating \"mods\" folder");
+                Directory.CreateDirectory(modsFolder);
+            }
+            
+            foreach (var mod in PotentialModEnumerator.FindAllPotentialMods(modsFolder))
+            {
+                var modInfo = ModInformationParser.ParseString(File.ReadAllText(Path.Combine(mod, "mod.json")));
+                Console.WriteLine($"Found a potential mod in {mod}: {modInfo.Slug ?? "Could not load mod.json"}");
+                if (modInfo.Slug != null)
+                {
+                    Console.WriteLine($"Enabling {modInfo.Name} by {string.Join(", ", modInfo.Authors)}");
+                    // TODO: if mod has more than one configuration, check if one is called default etc.
+
+                    string active;
+                    if (modInfo.Configurations.Count == 1)
+                    {
+                        active = modInfo.Configurations.First().Key;
+                    }
+                    else
+                    {
+                        if (modInfo.Configurations.ContainsKey("default"))
+                        {
+                            active = "default";
+                        }
+                        else
+                        {
+                            Console.Error.WriteLine($"{modInfo.Slug} has {modInfo.Configurations.Count} configurations, " +
+                                                    "but none of it is called `default`. Manually picking one is TODO");
+                            return false;
+                        }
+                    }
+
+                    enabledMods.Add(new ModSetting
+                    {
+                        ModPath = mod,
+                        ActiveConfiguration = active
+                    });
+                }
+            }
+
+            // TODO: Do shit with the features to resolve conflicts
+            settings.EnabledMods = enabledMods.ToArray();
+
+            File.WriteAllBytes(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mods.json"),
+                JsonSerializer.SerializeToUtf8Bytes(settings, new JsonSerializerOptions { WriteIndented = true }));
+            return true;
         }
     }
     #nullable restore
