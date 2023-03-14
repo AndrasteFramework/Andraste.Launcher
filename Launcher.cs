@@ -20,26 +20,36 @@ namespace Launcher
             var launcher = new Launcher();
             try
             {
-            switch (args.Length)
-            {
-                case 2:
-                    launcher.Launch(args[0], args[1]);
-                    break;
-                case 1:
-                    launcher.Launch(args[0], "Andraste.Payload.Generic.dll");
-                    break;
-                default:
-                    Console.ForegroundColor = ConsoleColor.Red;
+                switch (args.Length)
+                {
+                    case 0:
+                        Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine(
                             "No argument passed that contains the path to the game! Drag the game exe onto of this file or create a shortcut!");
-                    Console.WriteLine("The second argument can be used to override the local DLL file name");
-                        #if !DEBUG
-                    Console.WriteLine("Press ANY key to exit");
-                    Console.ReadKey();
-                        #endif
-                    break;
+                        Console.WriteLine("The second argument can be used to override the local DLL file name");
+                    #if !DEBUG
+                        Console.WriteLine("Press ANY key to exit");
+                        Console.ReadKey();
+                    #endif
+                        break;
+                    case 1:
+                        launcher.Launch(args[0], "Andraste.Payload.Generic.dll");
+                        break;
+                    case 2:
+                        launcher.Launch(args[0], args[1]);
+                        break;
+                    default: // at least 3 arguments
+                        if (!args[2].Equals("--"))
+                        {
+                            throw new ArgumentException("Invalid Parameter passed. Expecting the third parameter" +
+                                                        " to be '--' to enable passing further parameters to the application");
+                        }
+
+                        var appArgs = string.Join(" ", args.Skip(3));
+                        launcher.Launch(args[0], args[1], appArgs);
+                        break;
+                }
             }
-        }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -54,7 +64,7 @@ namespace Launcher
             }
         }
 
-        public void Launch(string exePath, string dllName)
+        public void Launch(string exePath, string dllName, string launchArgs = "")
         {
             if (!File.Exists(exePath))
             {
@@ -69,6 +79,8 @@ namespace Launcher
             
             // Boot up Andraste
             Initialize();
+            
+            Console.WriteLine($"Launching {exePath} with args {launchArgs}, injecting {actualDllPath}");
 
             if (!WriteModsJson())
             {
@@ -96,10 +108,14 @@ namespace Launcher
             {
                 Console.WriteLine($"Warning: Could not find a binding redirect file at {bindingRedirectFile}. Try to have your IDE generate one.");
             }
+            
+            var online = false;
+            var mutex = new Mutex(false, online ? "44938b8f" : "957e4cc3"); // TDU2 specific hack.
+
             Process? proc = null;
             try
             {
-                proc = StartApplication(exePath, "", actualDllPath);
+                proc = StartApplication(exePath, launchArgs, actualDllPath);
             }
             catch (Exception e)
             {
