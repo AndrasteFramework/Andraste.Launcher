@@ -18,6 +18,8 @@ namespace Launcher
         public static void Main(string[] args)
         {
             var launcher = new Launcher();
+            try
+            {
             switch (args.Length)
             {
                 case 2:
@@ -28,16 +30,43 @@ namespace Launcher
                     break;
                 default:
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("No argument passed that contains the path to the game! Drag the game exe onto of this file or create a shortcut!");
+                        Console.WriteLine(
+                            "No argument passed that contains the path to the game! Drag the game exe onto of this file or create a shortcut!");
                     Console.WriteLine("The second argument can be used to override the local DLL file name");
+                        #if !DEBUG
                     Console.WriteLine("Press ANY key to exit");
                     Console.ReadKey();
+                        #endif
                     break;
+            }
+        }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(
+                    "An Exception happened while launching the game:");
+                Console.WriteLine(ex.ToString());
+                #if !DEBUG
+                Console.WriteLine("Press ANY key to exit");
+                Console.ReadKey();
+                #endif
+
             }
         }
 
         public void Launch(string exePath, string dllName)
         {
+            if (!File.Exists(exePath))
+            {
+                throw new FileNotFoundException("Could not find application executable file", exePath);
+            }
+            
+            var actualDllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dllName);
+            if (!File.Exists(actualDllPath))
+            {
+                throw new FileNotFoundException("Could not find mod framework dll file", dllName);
+            }
+            
             // Boot up Andraste
             Initialize();
 
@@ -70,7 +99,7 @@ namespace Launcher
             Process? proc = null;
             try
             {
-                proc = StartApplication(exePath, "", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dllName));
+                proc = StartApplication(exePath, "", actualDllPath);
             }
             catch (Exception e)
             {
