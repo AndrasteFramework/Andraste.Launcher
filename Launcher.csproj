@@ -74,6 +74,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="app.manifest" />
+    <None Include="EasyHookCompiled\README.md" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7">
@@ -106,6 +107,14 @@
     <ContentWithTargetPath Include="EasyHookCompiled\EasyLoad32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>EasyLoad32.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="EasyHookCompiled\EasyHook64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>EasyHook64.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="EasyHookCompiled\EasyLoad64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>EasyLoad64.dll</TargetPath>
     </ContentWithTargetPath>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
