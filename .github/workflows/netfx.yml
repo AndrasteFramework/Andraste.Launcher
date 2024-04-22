@@ -1,0 +1,28 @@
+name: Build Repository
+on: [push]
+ 
+jobs:
+  build:
+    runs-on: windows-latest
+ 
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Restore NuGet Packages
+      run: nuget restore Andraste.Launcher.csproj
+ 
+    - name: Build project
+      run: msbuild Andraste.Launcher.csproj /p:Configuration=Release
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: exe
+        path: bin\Release\net48\Andraste.Launcher.exe
