@@ -6,81 +6,21 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using Andraste.Host;
+using Andraste.Host.CommandLine;
 using Andraste.Host.Logging;
 using Andraste.Shared.ModManagement;
 using Andraste.Shared.ModManagement.Json;
 
-namespace Launcher
+namespace Andraste.Launcher
 {
     #nullable enable
     public class Launcher : EntryPoint
     {
         public static void Main(string[] args)
         {
-            var launcher = new Launcher();
-            try
-            {
-                switch (args.Length)
-                {
-                    case 0:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine(
-                            "No argument passed that contains the path to the game! Drag the game exe onto of this file or create a shortcut!");
-                        Console.WriteLine("The second argument can be used to override the local DLL file name");
-#if !DEBUG
-                        Console.WriteLine("Press ANY key to exit");
-                        Console.ReadKey();
-#endif
-                        break;
-                    case 1:
-                    {
-                        if (int.TryParse(args[0], out var pid))
-                        {
-                            launcher.Attach(pid, "Andraste.Payload.Generic.dll");
-                        }
-                        else
-                        {
-                            launcher.Launch(args[0], "Andraste.Payload.Generic.dll");
-                        }
-                    }
-                        break;
-                    case 2:
-                    {
-                        if (int.TryParse(args[0], out var pid))
-                        {
-                            launcher.Attach(pid, args[1]);
-                        }
-                        else
-                        {
-                            launcher.Launch(args[0], args[1]);
-                        }
-                    }
-                        break;
-                    default: // at least 3 arguments
-                        if (!args[2].Equals("--"))
-                        {
-                            throw new ArgumentException("Invalid Parameter passed. Expecting the third parameter" +
-                                                        " to be '--' to enable passing further parameters to the application");
-                        }
-
-                        var appArgs = string.Join(" ", args.Skip(3));
-                        launcher.Launch(args[0], args[1], appArgs);
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(
-                    "An Exception happened while launching the game:");
-                Console.WriteLine(ex.ToString());
-#if !DEBUG
-                Console.WriteLine("Press ANY key to exit");
-                Console.ReadKey();
-#endif
-            }
+            new CliEntryPoint().InvokeSync(args, null);
         }
-        
+
         public void Attach(int processId, string dllName)
         {
             var proc = Process.GetProcessById(processId);
@@ -106,11 +46,11 @@ namespace Launcher
                 return;
             }
 
-            SetupBindingRedirect(exePath, dllName);
+            BindingRedirects.Setup(exePath, dllName);
             
             try
             {
-                AttachToApplication(proc, actualDllPath);
+                AttachToApplication(proc, actualDllPath, AppDomain.CurrentDomain.BaseDirectory);
             }
             catch (Exception e)
             {
@@ -154,7 +94,7 @@ namespace Launcher
                 return;
             }
 
-            SetupBindingRedirect(exePath, dllName);
+            BindingRedirects.Setup(exePath, dllName);
 
             var online = false;
             var mutex = new Mutex(false, online ? "44938b8f" : "957e4cc3"); // TDU2 specific hack.
@@ -162,7 +102,7 @@ namespace Launcher
             Process? proc = null;
             try
             {
-                proc = StartApplication(exePath, launchArgs, actualDllPath);
+                proc = StartApplication(exePath, launchArgs, actualDllPath, AppDomain.CurrentDomain.BaseDirectory);
             }
             catch (Exception e)
             {
@@ -212,33 +152,6 @@ namespace Launcher
             // Dispose/Cleanup
             output.StopListening();
             err.StopListening();
-        }
-
-        private static void SetupBindingRedirect(string exePath, string dllName)
-        {
-            // Unfortunately, .NET FX requires us to add the config file with the bindings redirect, otherwise it fails to load assemblies.
-            // This fails when you run the game multiple times with different .configs (or if the .config is locked by the file?), but that's a corner case.
-            // TODO: In theory we'd need to merge files, because here, dllName.config does not containing transitive rewrites that are part in Andraste.Shared.dll.config
-            var bindingRedirectFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dllName + ".config");
-            var bindingRedirectShared = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Andraste.Shared.dll.config");
-            if (File.Exists(bindingRedirectFile))
-            {
-                File.Copy(bindingRedirectFile, exePath + ".config", true);
-                // For some reason, debugging has shown that sometimes, it tries to resolve the .configs in the Launcher directory. Is that dependant on the app?
-                File.Copy(bindingRedirectFile,
-                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.GetFileName(exePath)) + ".config", true);
-                //File.Copy(bindingRedirectShared, Path.Combine(Path.GetDirectoryName(exePath)!, "Andraste.Shared.dll.config"), true);
-            }
-            else if (File.Exists(bindingRedirectShared))
-            {
-                Console.WriteLine("Warning: Framework does not have a specific binding redirect file. Trying Andraste.Shared");
-                File.Copy(bindingRedirectShared, exePath + ".config", true);
-            }
-            else
-            {
-                Console.WriteLine(
-                    $"Warning: Could not find a binding redirect file at {bindingRedirectFile}. Try to have your IDE generate one.");
-            }
         }
 
         private static bool WriteModsJson()
