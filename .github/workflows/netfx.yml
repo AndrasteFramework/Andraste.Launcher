@@ -7,7 +7,7 @@ jobs:
  
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -17,6 +17,12 @@ jobs:
 
     - name: Restore NuGet Packages
       run: nuget restore Andraste.Launcher.csproj
+      
+    - name: Debug Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: log
+        path: obj\project.assets.json
  
     - name: Build project
       run: msbuild Andraste.Launcher.csproj /p:Configuration=Release
