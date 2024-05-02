@@ -25,7 +25,7 @@ jobs:
         path: obj\project.assets.json
  
     - name: Build project
-      run: msbuild Andraste.Launcher.csproj /p:Configuration=Release /t:BUild
+      run: msbuild Andraste.Launcher.csproj /p:Configuration=Release /p:Platform=x86 /t:Build
       
     - name: Upload Artifact
       uses: actions/upload-artifact@v3

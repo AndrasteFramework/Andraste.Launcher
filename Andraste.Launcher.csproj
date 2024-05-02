@@ -25,7 +25,7 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <LangVersion>8</LangVersion>
     <Configurations>Release;Debug</Configurations>
-    <Platforms>AnyCPU;x86</Platforms>
+    <Platforms>x86</Platforms>
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
