@@ -19,8 +19,8 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <AssemblyTitle>Launcher</AssemblyTitle>
-    <Product>Launcher</Product>
+    <AssemblyTitle>Andraste.Launcher</AssemblyTitle>
+    <Product>Andraste Launcher</Product>
     <Copyright>Copyright 2023-2024 The AndrasteFramework Team</Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <LangVersion>8</LangVersion>
