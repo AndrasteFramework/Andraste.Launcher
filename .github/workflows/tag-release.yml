@@ -1,0 +1,41 @@
+﻿name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet Packages
+        run: msbuild Andraste.Launcher.csproj /t:Restore
+
+      - name: Build project
+        run: msbuild Andraste.Launcher.csproj /p:Configuration=Release /p:Platform=x86 /t:Build
+        
+      - name: Zip Release Bundle
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: bin\Release\net48\win-x86\
+          dest: Andraste-Launcher-${{ github.ref_name }}.zip
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Andraste-Launcher-${{ github.ref_name }}.zip
+          tag_name: ${{ github.ref }}
+          name: Release Andraste ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
