@@ -18,11 +18,20 @@ jobs:
     - name: Restore NuGet Packages
       run: msbuild Andraste.Launcher.csproj /t:Restore
  
-    - name: Build project
+    - name: Build x86
       run: msbuild Andraste.Launcher.csproj /p:Configuration=Release /p:Platform=x86 /t:Build
+
+    - name: Build x64
+      run: msbuild Andraste.Launcher.csproj /p:Configuration=Release /p:Platform=x64 /t:Build
       
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Release win-x86
         path: bin\Release\net48\win-x86\*
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Release win-x64
+        path: bin\Release\net48\win-x64\*
