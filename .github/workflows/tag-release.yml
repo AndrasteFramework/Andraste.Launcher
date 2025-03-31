@@ -31,13 +31,13 @@ jobs:
       - name: Zip Release Bundle x86
         uses: vimtor/action-zip@v1.2
         with:
-          files: bin\Release\net48\win-x86\
+          files: bin\Release\x86\net48\
           dest: Andraste-Launcher-${{ github.ref_name }}-x86.zip
 
       - name: Zip Release Bundle x64
         uses: vimtor/action-zip@v1.2
         with:
-          files: bin\Release\net48\win-x64\
+          files: bin\Release\x64\net48\
           dest: Andraste-Launcher-${{ github.ref_name }}-x64.zip
           
       - name: Create Release
