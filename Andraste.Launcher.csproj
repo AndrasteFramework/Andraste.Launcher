@@ -21,7 +21,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <AssemblyTitle>Andraste.Launcher</AssemblyTitle>
     <Product>Andraste Launcher</Product>
-    <Copyright>Copyright 2023-2024 The AndrasteFramework Team</Copyright>
+    <Copyright>Copyright 2023-2025 The AndrasteFramework Team</Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <LangVersion>8</LangVersion>
     <Configurations>Release;Debug</Configurations>
@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Andraste.EasyHook" Version="1.0.2" />
-    <PackageReference Include="Andraste.Host" Version="0.2.2" />
+    <PackageReference Include="Andraste.Host" Version="0.3.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
